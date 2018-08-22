@@ -61,6 +61,7 @@ pub struct Input {
 /// ```
 pub struct PasswordInput {
     text: String,
+    allow_empty_password: bool,
     confirmation_prompt: Option<(String, String)>,
 }
 
@@ -242,6 +243,7 @@ impl PasswordInput {
     pub fn new(text: &str) -> PasswordInput {
         PasswordInput {
             text: text.into(),
+            allow_empty_password: false,
             confirmation_prompt: None,
         }
     }
@@ -249,6 +251,14 @@ impl PasswordInput {
     /// Enables confirmation prompting.
     pub fn confirm(&mut self, prompt: &str, mismatch_err: &str) -> &mut PasswordInput {
         self.confirmation_prompt = Some((prompt.into(), mismatch_err.into()));
+        self
+    }
+
+    /// Allows/Disables empty password.
+    ///
+    /// By default this setting is set to false (i.e. password is not empty).
+    pub fn allow_empty_password(&mut self, allow_empty_password: bool) -> &mut PasswordInput {
+        self.allow_empty_password = allow_empty_password;
         self
     }
 
@@ -280,7 +290,7 @@ impl PasswordInput {
         loop {
             term.write_str(&format!("\r{}: ", prompt))?;
             let input = term.read_secure_line()?;
-            if !input.is_empty() {
+            if !input.is_empty() || self.allow_empty_password {
                 return Ok(input);
             }
         }
